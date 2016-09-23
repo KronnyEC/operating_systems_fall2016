@@ -6,6 +6,7 @@
 #include <netdb.h>
 #include "sockets.h"
 
+TODO: Clean this all up!
 
 int server (int portno) {
   //Get a soocket of the right type for now test with int sockfd
