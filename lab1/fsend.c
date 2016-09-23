@@ -74,21 +74,4 @@ void parse(char *line, char **argv){
      }
      *argv = '\0';                 /* mark the end of argument list  */
 }
-
-int main(){ 
-  char line [1024]; //this might need to change for input
-  char *argv[64];
-
-	
-	while (1) {                   /* repeat until done ....         */
-          printf("Shell -> ");     /*   display a prompt             */
-          gets(line);              /*   read in the command line     */
-          printf("\n");
-          parse(line, argv);       /*   parse the line               */
-          //if (strcmp(argv[0], "exit") == 0)  /* is it an "exit"?     */
-               //exit(0);            /*   exit if it is                */
-          //execute(argv);           /* otherwise, execute the command */
-     }
-	
-	
-}
+ 
