@@ -46,23 +46,22 @@ int server (int portno) {
   }
 
   // set it up to listen
-  listen(sockfd,5);
-
-  return sockfd;
+  listen(sockfd,5); 
   //open listen socket on port
 
   //wait for input
   
   //close socket
+  return sockfd;
 }
 
-int client (char* addr, int port) {
+//int client (char* addr, int port) {
   //open socket and connect to addr on port
   
   //send data over socket
 
   //close socket
-}
+//}
 
 void parse(char *line, char **argv){
 	while (*line != '\0') {       /* if not the end of line ....... */
@@ -74,5 +73,23 @@ void parse(char *line, char **argv){
                		line++;             /* skip the argument until ...    */
      }
      *argv = '\0';                 /* mark the end of argument list  */
+}
+
+int main (int argc, char *argv[]) {
+
+  //parse input
+  //IP, Port, etc.
+
+  //are we a server or a client?
+  char *listen = "-l";
+  if (argc > 1 && *argv[1] == *listen) {
+    printf("server\n");
+    //server(9285)
+  } else {
+    printf("client\n");
+    //client(localhost, 9285)
+  }
+
+  return 0;
 }
  
