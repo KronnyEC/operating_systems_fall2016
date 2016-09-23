@@ -14,6 +14,7 @@ int server (int portno) {
 	if (sockfd < 0){
 		printf("Error opening socket");
 		exit(1);
+
 	}
 
 	printf("Server Socket started on Port: %d\n", portno);
