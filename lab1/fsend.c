@@ -7,13 +7,10 @@
 #include <netdb.h>
 #include "sockets.h"
 
-<<<<<<< HEAD
 #define FILENAME "input.txt"
 #define SIZE 1
 #define NUMELEM 5
-=======
 // TODO: Clean this all up!
->>>>>>> 87a020b1b7acc21b27fbfb78210908c6ebfb762a
 
 
 int setupServerSocket (int portno) {
