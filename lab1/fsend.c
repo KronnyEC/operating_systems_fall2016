@@ -268,18 +268,17 @@ int main (int argc, char *argv[]) {
 
   //TODO: Scan ARGV for args
   file = argv[argc-1];
-  if (argc > 1) {
-    char *help = "-h";
-    if (arrayContains(argv, help)) {
-      //TODO: Shit here
-    }
+  if (arrayContains(argv, "-h")) {
+    char* helpMessage = "\t-h\t\tPrint this help screen\n\t-v\t\tVerbose output\n\t-p port\t\tSet the port to connect on (e.g., 9285)\n\t-n bytes\tNumber of bytes to send, defaults whole file\n\t-o offset\tOffset into file to start sending\n\t-l\t\tListen (on server side) on port instead of connecting and\n\t\t\twrite output to file and dest_ip refers to which ip to bind to.\n\t\t\t(default:localhost)\n";
+    printf("fsend [OPTIONS] dest_ip file\n%s",helpMessage);
+  } else if (argc > 1) {
     if (arrayContains(argv, "-v")) {
       verbose = 1;
     }
     if (arrayContains(argv, "-p")) { // see if there is -p####
       port = atoi(argv[arrayContains(argv, "-p")+1]);
       //if (verbose) {
-        printf("port number: %d\n", port);
+      printf("port number: %d\n", port);
       //}
     }
     //    arg = "-o";
@@ -297,19 +296,20 @@ int main (int argc, char *argv[]) {
     } 
     //server(9285)
   } 
-  if(!arrayContains(argv, "-l")) {
-  printf("Setting up Client\n");
-  printf("Reading File....\n");
-  //readFile(); 
-  //int port = 5124;
-  //waits for call
-  int call = calltheServer(port);
-  //int serv = serverSocketAccept(call);
-  if (file != "") {
-    printf("file: %s\n", file);
-    writeClient(call, file);
+  if(!arrayContains(argv, "-l") && !arrayContains(argv, "-h")) {
+    printf("Setting up Client\n");
+    printf("Reading File....\n");
+    //readFile(); 
+    //int port = 5124;
+    //waits for call
+    int call = calltheServer(port);
+    //int serv = serverSocketAccept(call);
+    if (file != "") {
+      printf("file: %s\n", file);
+      writeClient(call, file);
+    }
+    //client(localhost, 9285)
   }
-  //client(localhost, 9285)
+  printf("fuck! We here?");
   return 0;
-  }
 }
