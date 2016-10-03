@@ -10,20 +10,23 @@
 #define FILENAME "input.txt"
 #define SIZE 1
 #define NUMELEM 5
+
+int verbose = 0;
+
 // TODO: Clean this all up!
 
 
 int setupServerSocket (int portno) {
   //Get a soocket of the right type for now test with int sockfd
-	int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+  int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
-	if (sockfd < 0){
-		printf("Error opening socket");
-		exit(1);
+  if (sockfd < 0){
+    printf("Error opening socket");
+    exit(1);
 
-	}
+  }
 
-	printf("Server Socket started on Port: %d\n", portno);
+  printf("Server Socket started on Port: %d\n", portno);
   // port number
 
   // server address structure
@@ -55,7 +58,7 @@ int setupServerSocket (int portno) {
   //open listen socket on port
 
   //wait for input
-  
+
   //close socket
   return sockfd;
 }
@@ -64,8 +67,8 @@ int calltheServeer(int portno){
   int sockfd;
   sockfd = socket(AF_INET, SOCK_STREAM, 0);
   if (sockfd < 0){
-   fprintf(stderr,"ERROR opening socket\n");
-   exit(0);
+    fprintf(stderr,"ERROR opening socket\n");
+    exit(0);
   }
 }
 
@@ -76,30 +79,33 @@ int serverSocketAccept(int serverSocket){
 
   newsockfd = accept(serverSocket, (struct sockaddr *) &cli_addr, &clilen);
   if (newsockfd < 0){
-   printf("ERROR on accept");
-   exit(1);
+    printf("ERROR on accept");
+    exit(1);
   }
 
   return newsockfd;
 }
 
 int readInt(int socket){
+  //  bzero(buffer,256);
+
+  // loop until EOF
+  while(1) {
   char buffer[256];
   memset(&buffer, '\0', 256);
-  //  bzero(buffer,256);
-  int n = read(socket,buffer,255);
-  if (n < 0) {
-    printf("ERROR reading from socket\n");
-    exit(1);
-  }
+    int n = read(socket,buffer,255);
+    if (n < 0) {
+      //printf("ERROR reading from socket\n");
+      exit(1);
+    }
 
-  printf("Here is the number: %s\n",buffer);
-  n = write(socket,"I got your message",18);
-  if (n < 0) {
-    printf("ERROR writing to socket\n");
-    exit(1);
+    printf("%s",buffer);
+    n = write(socket,"I got your message",18);
+    if (n < 0) {
+      //printf("ERROR writing to socket\n");
+      exit(1);
+    }
   }
-
   close(socket);
   return 0;
 
@@ -108,7 +114,7 @@ int readInt(int socket){
 int readFile(int socket){
 
 
-  
+
 }
 
 
@@ -126,7 +132,7 @@ void writeClientInt(int x, int socket){
   //char buffer[256];
   //printf("Please enter the message: ");
   //memset(&buffer, '\0', 256);
-  
+
   FILE* fd = fopen("input.txt","rb");
   long lSize;
   char * buffer;
@@ -153,7 +159,7 @@ void writeClientInt(int x, int socket){
 
   /* the whole file is now loaded in the memory buffer. */
 
-  
+
 
 
   //fread(buff,SIZE,NUMELEM,fd);
@@ -181,11 +187,11 @@ void writeClientInt(int x, int socket){
   fclose (fd);
   free (buffer);
 
- }
- 
+}
+
 
 int calltheServer(int portno){ //char* host{  
- // Socket pointer
+  // Socket pointer
   int sockfd;
   sockfd = socket(AF_INET, SOCK_STREAM, 0);
   if (sockfd < 0) {
@@ -198,10 +204,10 @@ int calltheServer(int portno){ //char* host{
 
   // Set all the values in the server address to 0
   memset(&serv_addr, '0', sizeof(serv_addr));
-// Setup the type of socket (internet vs filesystem)
+  // Setup the type of socket (internet vs filesystem)
   serv_addr.sin_family = AF_INET;
 
-   // Setup the port number
+  // Setup the port number
   // htons - is host to network byte order
   // network byte order is most sig byte first
   //   which might be host or might not be
@@ -231,15 +237,25 @@ int calltheServer(int portno){ //char* host{
 
 
 void parse(char *line, char **argv){
-	while (*line != '\0') {       /* if not the end of line ....... */
-          	while (*line == ' ' || *line == '\t' || *line == '\n')
-               		*line++ = '\0';     /* replace white spaces with 0    */
-          		*argv++ = line;          /* save the argument position     */
-          	while (*line != '\0' && *line != ' ' &&
-                 	*line != '\t' && *line != '\n')
-               		line++;             /* skip the argument until ...    */
-     }
-     *argv = '\0';                 /* mark the end of argument list  */
+  while (*line != '\0') {       /* if not the end of line ....... */
+    while (*line == ' ' || *line == '\t' || *line == '\n')
+      *line++ = '\0';     /* replace white spaces with 0    */
+    *argv++ = line;          /* save the argument position     */
+    while (*line != '\0' && *line != ' ' &&
+        *line != '\t' && *line != '\n')
+      line++;             /* skip the argument until ...    */
+  }
+  *argv = '\0';                 /* mark the end of argument list  */
+}
+
+int arrayContains (char** argArray, char* argToFind) {
+  int i = 1;
+  for(i; i<sizeof(argArray)-2;i++){
+    if (strcmp(argArray[i], argToFind) == 0) {
+      return 1;
+    }
+  }
+  return 0;
 }
 
 int main (int argc, char *argv[]) {
@@ -247,19 +263,42 @@ int main (int argc, char *argv[]) {
   //parse input
   //IP, Port, etc.
 
-  //are we a server or a client?
-  char *listen = "-l";
-  if (argc > 1 && *argv[1] == *listen) {
-    printf("server\n");
-    printf("Setting up Server Socket\n");
-    //set up up port 5124
-    int port = 5124;
-    int setup = setupServerSocket(port);
-    int accept = serverSocketAccept(setup);
-    int socketOn = readInt(accept); //read from the accepted Socket, need to change to read any inpu
-    
+  //TODO: Scan ARGV for args
+  if (argc >1) {
+    char *help = "-h";
+    if (arrayContains(argv, help)) {
+
+    }
+    if (arrayContains(argv, "-v")) {
+      verbose = 1;
+      printf("verbose status: %d\n", verbose);
+    }
+    //    char *arg = "-p";
+    //    if (*argv[1] == *arg) {
+    //
+    //    }
+    //    arg = "-n";
+    //    if (*argv[1] == *arg) {
+    //
+    //    }
+    //    arg = "-o";
+    //    if (*argv[1] == *arg) {
+    //
+    //    }
+    //    char *arg = "-l";
+    //    if (*argv[1] == *arg) {
+    if (arrayContains(argv, "-l")) {
+      printf("server\n");
+      printf("Setting up Server Socket\n");
+      //set up up port 5124
+      int port = 5124;
+      int setup = setupServerSocket(port);
+      int accept = serverSocketAccept(setup);
+      int socketOn = readInt(accept); //read from the accepted Socket, need to change to read any inpu
+    } 
     //server(9285)
-  } else {
+  } 
+  if (!arrayContains(argv, "-l")) {
     printf("Setting up Client\n");
     printf("Reading File....");
     //readFile(); 
@@ -270,7 +309,6 @@ int main (int argc, char *argv[]) {
     writeClientInt(5, call);
     //client(localhost, 9285)
   }
-
   return 0;
-}
- 
+  }
+
