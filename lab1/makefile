@@ -1,2 +1,2 @@
-make: fsend.c sockets.h
-	gcc fsend.c sockets.h -o fsend
+make: fsend.c
+	gcc fsend.c -o fsend

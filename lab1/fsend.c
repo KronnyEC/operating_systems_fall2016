@@ -11,6 +11,7 @@
 #define SIZE 1
 #define NUMELEM 5
 
+char *file = "";
 int verbose = 0;
 
 // TODO: Clean this all up!
@@ -91,8 +92,8 @@ int readInt(int socket){
 
   // loop until EOF
   while(1) {
-  char buffer[256];
-  memset(&buffer, '\0', 256);
+    char buffer[256];
+    memset(&buffer, '\0', 256);
     int n = read(socket,buffer,255);
     if (n < 0) {
       //printf("ERROR reading from socket\n");
@@ -128,17 +129,17 @@ int calltheServer(int portno);
 
 
 
-void writeClientInt(int x, int socket){
+void writeClient(int socket, const char *filename){
   //char buffer[256];
   //printf("Please enter the message: ");
   //memset(&buffer, '\0', 256);
 
-  FILE* fd = fopen("input.txt","rb");
+  FILE* fd = fopen(filename,"rb");
   long lSize;
   char * buffer;
   size_t result;
 
-  fd = fopen("input.txt","rd"); //open file
+  //fd = fopen(filename,"rd"); //open file
 
   // obtain file size:
   fseek (fd, 0 , SEEK_END);
@@ -264,6 +265,10 @@ int main (int argc, char *argv[]) {
   //IP, Port, etc.
 
   //TODO: Scan ARGV for args
+  printf("ARG PARSING");
+  if (argv[argc-1]) {
+
+  }
   if (argc >1) {
     char *help = "-h";
     if (arrayContains(argv, help)) {
@@ -298,17 +303,15 @@ int main (int argc, char *argv[]) {
     } 
     //server(9285)
   } 
-  if (!arrayContains(argv, "-l")) {
-    printf("Setting up Client\n");
-    printf("Reading File....");
-    //readFile(); 
-    int port = 5124;
-    //waits for call
-    int call = calltheServer(port);
-    //int serv = serverSocketAccept(call);
-    writeClientInt(5, call);
-    //client(localhost, 9285)
-  }
+  printf("Setting up Client\n");
+  printf("Reading File....");
+  //readFile(); 
+  int port = 5124;
+  //waits for call
+  int call = calltheServer(port);
+  //int serv = serverSocketAccept(call);
+  writeClient(call, file);
+  //client(localhost, 9285)
   return 0;
   }
 
