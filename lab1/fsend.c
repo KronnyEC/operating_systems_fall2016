@@ -13,6 +13,7 @@
 
 char *file = "";
 int verbose = 0;
+int port = 0;
 
 // TODO: Clean this all up!
 
@@ -250,68 +251,65 @@ void parse(char *line, char **argv){
 }
 
 int arrayContains (char** argArray, char* argToFind) {
+  // if contained, return index where it was found
+  // if not found, return 0 (0 is never returned otherwise)
   int i = 1;
-  for(i; i<sizeof(argArray)-2;i++){
+  for(i; i<sizeof(argArray)-1;++i){
     if (strcmp(argArray[i], argToFind) == 0) {
-      return 1;
+      return i;
     }
   }
   return 0;
 }
 
 int main (int argc, char *argv[]) {
-
   //parse input
   //IP, Port, etc.
 
   //TODO: Scan ARGV for args
-  printf("ARG PARSING");
-  if (argv[argc-1]) {
-
-  }
-  if (argc >1) {
+  file = argv[argc-1];
+  if (argc > 1) {
     char *help = "-h";
     if (arrayContains(argv, help)) {
-
+      //TODO: Shit here
     }
     if (arrayContains(argv, "-v")) {
       verbose = 1;
-      printf("verbose status: %d\n", verbose);
     }
-    //    char *arg = "-p";
-    //    if (*argv[1] == *arg) {
-    //
-    //    }
-    //    arg = "-n";
-    //    if (*argv[1] == *arg) {
-    //
-    //    }
+    if (arrayContains(argv, "-p")) { // see if there is -p####
+      port = atoi(argv[arrayContains(argv, "-p")+1]);
+      //if (verbose) {
+        printf("port number: %d\n", port);
+      //}
+    }
     //    arg = "-o";
     //    if (*argv[1] == *arg) {
     //
     //    }
-    //    char *arg = "-l";
-    //    if (*argv[1] == *arg) {
     if (arrayContains(argv, "-l")) {
       printf("server\n");
       printf("Setting up Server Socket\n");
-      //set up up port 5124
-      int port = 5124;
+      //set up up port port
+      // int port = 5124;
       int setup = setupServerSocket(port);
       int accept = serverSocketAccept(setup);
       int socketOn = readInt(accept); //read from the accepted Socket, need to change to read any inpu
     } 
     //server(9285)
   } 
+  if(!arrayContains(argv, "-l")) {
   printf("Setting up Client\n");
-  printf("Reading File....");
+  printf("Reading File....\n");
   //readFile(); 
-  int port = 5124;
+  //int port = 5124;
   //waits for call
   int call = calltheServer(port);
   //int serv = serverSocketAccept(call);
-  writeClient(call, file);
+  if (file != "") {
+    printf("file: %s\n", file);
+    writeClient(call, file);
+  }
   //client(localhost, 9285)
   return 0;
   }
-
+}
