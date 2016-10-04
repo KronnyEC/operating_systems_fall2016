@@ -14,6 +14,7 @@
 char *file = "";
 int verbose = 0;
 int port = 0;
+char* possibleIPs[2];
 
 // TODO: Clean this all up!
 
@@ -218,7 +219,7 @@ int calltheServer(int portno){ //char* host{
 
   // Setup the server host address
   struct hostent *server;
-  server = gethostbyname("localhost");
+  server = gethostbyname(possibleIPs[0]);
   if (server == NULL) {
     fprintf(stderr,"ERROR, no such host\n");
     exit(0);
@@ -250,6 +251,7 @@ int arrayContains (char** argArray, char* argToFind) {
 
 int main(int argc, char *argv[]){
   int i;
+  int ipIndex = 0;
   for (i = 1; i < (argc - 1); i++) {
     printf("ARGV[%d] = %s\n", i, argv[i]);
     if (strcmp("-h", argv[i]) == 0) {
@@ -269,6 +271,10 @@ int main(int argc, char *argv[]){
     if (strcmp("-o", argv[i]) == 0){
       printf("Offset into file : %i\n", atoi(argv[++i]));
       int offset = atoi(argv[i+1]);
+    }
+    if (strcmp("localhost", argv[i]) || strstr(argv[i], ".") != NULL) {
+      possibleIPs[ipIndex] = argv[i];
+      ipIndex++;
     }
   }
   for (i = 1; i < (argc - 1); i++) {
