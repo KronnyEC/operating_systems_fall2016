@@ -15,6 +15,9 @@ char *file = "";
 int verbose = 0;
 int port = 0;
 char* possibleIPs[2];
+int offset = 0;
+long bytes = 0;
+int flag = 0;
 
 // TODO: Clean this all up!
 
@@ -131,7 +134,7 @@ int calltheServer(int portno);
 
 
 
-void writeClient(int socket, const char *filename){
+void writeClient(int socket, const char *filename, int offset, long amountToSend, int flag){
   //char buffer[256];
   //printf("Please enter the message: ");
   //memset(&buffer, '\0', 256);
@@ -140,23 +143,45 @@ void writeClient(int socket, const char *filename){
   long lSize;
   char * buffer;
   size_t result;
-
+  long totalSize; 
+  long allocationSize;
   //fd = fopen(filename,"rd"); //open file
 
   // obtain file size:
-  fseek (fd, 0 , SEEK_END);
+  
+ 
+  //totalSize = ftell:(fd);
+  //printf("File size is %d bytes \n", totalSize);  
+  fseek (fd, 0, SEEK_END); //find the entire fileSize
   lSize = ftell (fd);
-  rewind (fd);
+  
+  
+  printf("Total size of file now is %d bytes \n", lSize);
+  
+  fseek (fd, offset, SEEK_SET); //get to the offset. 
+  totalSize = ftell(fd);
+  printf("Amout to offset file size is %d bytes \n", totalSize);
+
+  if (flag == 1){ 
+    allocationSize = amountToSend;
+    printf("Send the following amount to the Server %d\n: ", amountToSend); 
+
+  } else {
+    allocationSize = lSize - totalSize;
+  }
+  printf("Allocation Size for file is %d\n : ", allocationSize);
+
+  //rewind (fd);
 
   // allocate memory to contain the whole file:
-  buffer = (char*) malloc (sizeof(char)*lSize);
+  buffer = (char*) malloc (sizeof(char)*allocationSize);
   if (buffer == NULL) {
     fputs ("Memory error",stderr); exit (2);
   }
 
   // copy the file into the buffer:
-  result = fread (buffer,1,lSize,fd);
-  if (result != lSize) {
+  result = fread (buffer,1,allocationSize,fd);
+  if (result != allocationSize) {
     fputs ("Reading error",stderr); exit (3);
   }
 
@@ -166,7 +191,7 @@ void writeClient(int socket, const char *filename){
 
 
   //fread(buff,SIZE,NUMELEM,fd);
-  printf("\n The bytes read are [%s]\n",buffer);
+  //printf("\n The bytes read are [%s]\n",buffer);
 
   //fgets(buffer,255,stdin);
 
@@ -239,7 +264,6 @@ int arrayContains (char** argArray, char* argToFind) {
   // if contained, return index where it was found
   // if not found, return 0 (0 is never returned otherwise)
 
-  printf("HERE in array contains");
   int i = 1;
   for(i; i<sizeof(argArray)-1;++i){
     if (strcmp(argArray[i], argToFind) == 0) {
@@ -265,12 +289,15 @@ int main(int argc, char *argv[]){
       port = atoi(argv[i+1]);
     }
     if (strcmp("-n", argv[i]) == 0){
-      printf("Number of bytes to send : %i\n", atoi(argv[++i]));
-      int bytes = atoi(argv[i+1]);
+      //printf("Number of bytes to send : %i\n", atoi(argv[i+1]));
+      flag = 1;
+      bytes = atoi(argv[i+1]);
     }
     if (strcmp("-o", argv[i]) == 0){
-      printf("Offset into file : %i\n", atoi(argv[++i]));
-      int offset = atoi(argv[i+1]);
+      printf("Offset into file : %i\n", atoi(argv[i+1]));
+      offset = atoi(argv[i+1]);
+      printf("Offset is %i\n", offset);
+      
     }
     if (strcmp("localhost", argv[i]) || strstr(argv[i], ".") != NULL) {
       possibleIPs[ipIndex] = argv[i];
@@ -292,6 +319,9 @@ int main(int argc, char *argv[]){
   printf("Calling the Server now:\n");
   printf("On port %i\n", port);
   int call =  calltheServer(port);
-  writeClient(call, file);
+  //printf("Offset amount for file %i\n", offset);
+  
+  printf("Sending the following num of bytest over : %d", bytes);
+  writeClient(call, file, offset, bytes, flag);
   return 0;
 }
