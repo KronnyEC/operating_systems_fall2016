@@ -234,25 +234,11 @@ int calltheServer(int portno){ //char* host{
   return sockfd;
 }
 
-
-
-
-
-void parse(char *line, char **argv){
-  while (*line != '\0') {       /* if not the end of line ....... */
-    while (*line == ' ' || *line == '\t' || *line == '\n')
-      *line++ = '\0';     /* replace white spaces with 0    */
-    *argv++ = line;          /* save the argument position     */
-    while (*line != '\0' && *line != ' ' &&
-        *line != '\t' && *line != '\n')
-      line++;             /* skip the argument until ...    */
-  }
-  *argv = '\0';                 /* mark the end of argument list  */
-}
-
 int arrayContains (char** argArray, char* argToFind) {
   // if contained, return index where it was found
   // if not found, return 0 (0 is never returned otherwise)
+  
+  printf("HERE in array contains");
   int i = 1;
   for(i; i<sizeof(argArray)-1;++i){
     if (strcmp(argArray[i], argToFind) == 0) {
@@ -262,54 +248,69 @@ int arrayContains (char** argArray, char* argToFind) {
   return 0;
 }
 
-int main (int argc, char *argv[]) {
-  //parse input
-  //IP, Port, etc.
+int main(int argc, char *argv[]){
+   int i;
+   int portClient;
+   for (i = 1; i < (argc - 1); i++) {
+       if (strcmp("-h", argv[i]) == 0) {
+          printf("help");
+       }
+       
+       if (!strcmp("-l", argv[i]) == 0) {
+       	if (strcmp("-v", argv[i]) == 0) {
+        	  printf("verbose output");
+                continue;
+       }
+       	if (strcmp("-p", argv[i]) == 0) {
+        	 printf("Port number : %i\n", atoi(argv[++i]));
+		 portClient = atoi(argv[++i]);
+          	 i++;
+                    
+       }
 
-  //TODO: Scan ARGV for args
-  file = argv[argc-1];
-  if (arrayContains(argv, "-h")) {
-    char* helpMessage = "\t-h\t\tPrint this help screen\n\t-v\t\tVerbose output\n\t-p port\t\tSet the port to connect on (e.g., 9285)\n\t-n bytes\tNumber of bytes to send, defaults whole file\n\t-o offset\tOffset into file to start sending\n\t-l\t\tListen (on server side) on port instead of connecting and\n\t\t\twrite output to file and dest_ip refers to which ip to bind to.\n\t\t\t(default:localhost)\n";
-    printf("fsend [OPTIONS] dest_ip file\n%s",helpMessage);
-  } else if (argc > 1) {
-    if (arrayContains(argv, "-v")) {
-      verbose = 1;
-    }
-    if (arrayContains(argv, "-p")) { // see if there is -p####
-      port = atoi(argv[arrayContains(argv, "-p")+1]);
-      //if (verbose) {
-      printf("port number: %d\n", port);
-      //}
-    }
-    //    arg = "-o";
-    //    if (*argv[1] == *arg) {
-    //
-    //    }
-    if (arrayContains(argv, "-l")) {
-      printf("server\n");
-      printf("Setting up Server Socket\n");
-      //set up up port port
-      // int port = 5124;
-      int setup = setupServerSocket(port);
-      int accept = serverSocketAccept(setup);
-      int socketOn = readInt(accept); //read from the accepted Socket, need to change to read any inpu
-    } 
-    //server(9285)
-  } 
-  if(!arrayContains(argv, "-l") && !arrayContains(argv, "-h")) {
-    printf("Setting up Client\n");
-    printf("Reading File....\n");
-    //readFile(); 
-    //int port = 5124;
-    //waits for call
-    int call = calltheServer(port);
-    //int serv = serverSocketAccept(call);
-    if (file != "") {
-      printf("file: %s\n", file);
-      writeClient(call, file);
-    }
-    //client(localhost, 9285)
-  }
-  printf("fuck! We here?");
-  return 0;
+      	 if (strcmp("-n", argv[i]) == 0){
+       		 printf("Number of bytes to send : %i\n", atoi(argv[++i]));
+        	int bytes = atoi(argv[++i]);
+        	i++;
+                
+
+       	}
+        
+        if (strcmp("-o", argv[i]) == 0){
+		printf("Offset into file : %i\n", atoi(argv[++i]));
+                int offset = atoi(argv[++i]);
+                i++;
+	}
+        file = argv[argc - 1];
+        printf("File is as follows %s", file);
+        printf("Calling the Server now:");
+        printf("On port %i\n", portClient);
+        int call =  calltheServer(portClient);
+	writeClient(call, file);
+       }
+       
+       
+
+
+       if (strcmp("-l", argv[i]) == 0){
+          printf("Setting up Server");
+          //printf("Server setup on port %i\n", port); 
+          printf("I is at %i\n", i);
+         i++; 
+	 if (strcmp("-p", argv[i]) == 0){
+             port = atoi(argv[++i]);
+             printf("Server started on port %i\n", port);
+	  }         
+          
+	  int setup = setupServerSocket(port);
+          int accept = serverSocketAccept(setup);
+          int socketOn = readInt(accept);
+          
+	}
+
+   }
+   return 0;
+
 }
+
+
