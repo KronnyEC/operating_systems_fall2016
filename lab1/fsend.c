@@ -18,7 +18,7 @@ char* possibleIPs[2];
 int offset = 0;
 long bytes = 0;
 int flag = 0;
-int fsize = 0;
+long fsize = 0;
 
 // TODO: Clean this all up!
 
@@ -93,39 +93,30 @@ int serverSocketAccept(int serverSocket){
   return newsockfd;
 }
 
-int readInt(int socket){
+int readFile(int socket){
   //  bzero(buffer,256);
 
   // loop until EOF
-  while(1) {
+  while(1){
     char buffer[256];
     memset(&buffer, '\0', 256);
     int n = read(socket,buffer,255);
     if (n < 0) {
-      //printf("ERROR reading from socket\n");
+      printf("ERROR reading from socket\n");
       exit(1);
     }
 
     printf("%s",buffer);
-    n = write(socket,"I got your message",18);
-    if (n < 0) {
+    //n = write(socket,"File Size Recieved", 18);
+    //if (n < 0) {
       //printf("ERROR writing to socket\n");
-      exit(1);
-    }
-  }
+      //exit(1);
+    //}
+  }  
   close(socket);
   return 0;
 
 }
-
-int readFile(int socket){
-
-
-
-}
-
-
-
 
 
 
@@ -159,6 +150,9 @@ void writeClient(int socket, const char *filename, int offset, long amountToSend
   if (verbose) {
     printf("File size: %d\n", lSize);
   }
+  //fsize = lSize;
+
+  //printf("File size: %d\n", fsize);
   
   fseek (fd, offset, SEEK_SET); //get to the offset. 
   totalSize = ftell(fd);
@@ -166,11 +160,12 @@ void writeClient(int socket, const char *filename, int offset, long amountToSend
 
   if (flag == 1){ 
     allocationSize = amountToSend;
-    fsize = allocationSize;
+    //fsize = allocationSize;
     //printf("Send the following amount to the Server %d\n: ", amountToSend); 
 
   } else {
     allocationSize = lSize - totalSize;
+    //fsize = allocationSize;
   }
   //printf("Allocation Size for file is %d\n : ", allocationSize);
 
@@ -279,6 +274,8 @@ int arrayContains (char** argArray, char* argToFind) {
 int main(int argc, char *argv[]){
   int i;
   int ipIndex = 0;
+  long sz = 0;
+
   for (i = 1; i < (argc - 1); i++) {
     if (strcmp("-h", argv[i]) == 0) {
       char* helpMessage = "\t-h\t\tPrint this help screen\n\t-v\t\tVerbose output\n\t-p port\t\tSet the port to connect on (e.g., 9285)\n\t-n bytes\tNumber of bytes to send, defaults whole file\n\t-o offset\tOffset into file to start sending\n\t-l\t\tListen (on server side) on port instead of connecting and\n\t\t\twrite output to file and dest_ip refers to which ip to bind to.\n\t\t\t(default:localhost)\n";
@@ -296,9 +293,9 @@ int main(int argc, char *argv[]){
       bytes = atoi(argv[i+1]);
     }
     if (strcmp("-o", argv[i]) == 0){
-      printf("Offset into file : %i\n", atoi(argv[i+1]));
+      //printf("Offset into file : %i\n", atoi(argv[i+1]));
       offset = atoi(argv[i+1]);
-      printf("Offset is %i\n", offset);
+      //printf("Offset is %i\n", offset);
 
     }
     if ((strcmp("localhost", argv[i]) == 0) || strstr(argv[i], ".") != NULL) {
@@ -312,12 +309,20 @@ int main(int argc, char *argv[]){
       //printf("Server setup on port %i\n", port); 
       int setup = setupServerSocket(port);
       int accept = serverSocketAccept(setup);
-      int socketOn = readInt(accept);
+      int socketOn = readFile(accept);
       return 0;
     }
   }
 
   file = argv[argc - 1];
+  
+  //For File length for verbose
+  //FILE *fp;
+  //int len;
+  //fp = fopen(file, "r");
+  //fseek(fp, 0, SEEK_END);  
+  //len = ftell(fp);
+  //fclose(fp);
 
   int call =  calltheServer(port);
   //printf("Offset amount for file %i\n", offset);
@@ -325,8 +330,11 @@ int main(int argc, char *argv[]){
   if (verbose) {
     printf("Connecting to IP: %s\n", possibleIPs[0]);
     printf("On port: %d\n", port);
-    ("File name: %s\n", file);
+    printf("File name: %s \n", file);
+    printf("File size: %d \n", fsize);
+    printf("Sending file [offset=%i | send size = %d]\n", offset, bytes);  
   }
+
   writeClient(call, file, offset, bytes, flag);
   if (verbose) {
     printf("Send success!\n");
