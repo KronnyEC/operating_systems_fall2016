@@ -14,6 +14,7 @@
 char *file = "";
 int verbose = 0;
 int port = 0;
+int offset = 0;
 
 // TODO: Clean this all up!
 
@@ -130,7 +131,7 @@ int calltheServer(int portno);
 
 
 
-void writeClient(int socket, const char *filename){
+void writeClient(int socket, const char *filename, int offset){
   //char buffer[256];
   //printf("Please enter the message: ");
   //memset(&buffer, '\0', 256);
@@ -139,23 +140,38 @@ void writeClient(int socket, const char *filename){
   long lSize;
   char * buffer;
   size_t result;
-
+  long totalSize; 
+  long allocationSize;
   //fd = fopen(filename,"rd"); //open file
 
   // obtain file size:
-  fseek (fd, 0 , SEEK_END);
+  
+  printf("Are we HERE");
+  //totalSize = ftell:(fd);
+  //printf("File size is %d bytes \n", totalSize);  
+  fseek (fd, 0, SEEK_END); //
   lSize = ftell (fd);
-  rewind (fd);
+  
+  printf("Total size of file now is %d bytest \n", lSize);
+  
+  fseek (fd, offset, SEEK_SET); //get to the offset. 
+  totalSize = ftell(fd);
+  printf("Amout to offset file size is no %d bytest \n", totalSize);
+
+  allocationSize = lSize - totalSize;
+  printf("Allocation Size for file is %d\n : ", allocationSize);
+
+  //rewind (fd);
 
   // allocate memory to contain the whole file:
-  buffer = (char*) malloc (sizeof(char)*lSize);
+  buffer = (char*) malloc (sizeof(char)*allocationSize);
   if (buffer == NULL) {
     fputs ("Memory error",stderr); exit (2);
   }
 
   // copy the file into the buffer:
-  result = fread (buffer,1,lSize,fd);
-  if (result != lSize) {
+  result = fread (buffer,1,allocationSize,fd);
+  if (result != allocationSize) {
     fputs ("Reading error",stderr); exit (3);
   }
 
@@ -165,7 +181,7 @@ void writeClient(int socket, const char *filename){
 
 
   //fread(buff,SIZE,NUMELEM,fd);
-  printf("\n The bytes read are [%s]\n",buffer);
+  //printf("\n The bytes read are [%s]\n",buffer);
 
   //fgets(buffer,255,stdin);
 
@@ -238,7 +254,6 @@ int arrayContains (char** argArray, char* argToFind) {
   // if contained, return index where it was found
   // if not found, return 0 (0 is never returned otherwise)
 
-  printf("HERE in array contains");
   int i = 1;
   for(i; i<sizeof(argArray)-1;++i){
     if (strcmp(argArray[i], argToFind) == 0) {
@@ -250,6 +265,7 @@ int arrayContains (char** argArray, char* argToFind) {
 
 int main(int argc, char *argv[]){
   int i;
+  
   for (i = 1; i < (argc - 1); i++) {
     printf("ARGV[%d] = %s\n", i, argv[i]);
     if (strcmp("-h", argv[i]) == 0) {
@@ -267,8 +283,10 @@ int main(int argc, char *argv[]){
       int bytes = atoi(argv[i+1]);
     }
     if (strcmp("-o", argv[i]) == 0){
-      printf("Offset into file : %i\n", atoi(argv[++i]));
-      int offset = atoi(argv[i+1]);
+      printf("Offset into file : %i\n", atoi(argv[i+1]));
+      offset = atoi(argv[i+1]);
+      printf("Offset is %i\n", offset);
+      
     }
   }
   for (i = 1; i < (argc - 1); i++) {
@@ -286,6 +304,8 @@ int main(int argc, char *argv[]){
   printf("Calling the Server now:\n");
   printf("On port %i\n", port);
   int call =  calltheServer(port);
-  writeClient(call, file);
+  //printf("Offset amount for file %i\n", offset);
+  
+  writeClient(call, file, offset);
   return 0;
 }
