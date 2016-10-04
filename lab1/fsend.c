@@ -279,7 +279,8 @@ int main(int argc, char *argv[]){
   for (i = 1; i < (argc - 1); i++) {
     printf("ARGV[%d] = %s\n", i, argv[i]);
     if (strcmp("-h", argv[i]) == 0) {
-      printf("help");
+      char* helpMessage = "\t-h\t\tPrint this help screen\n\t-v\t\tVerbose output\n\t-p port\t\tSet the port to connect on (e.g., 9285)\n\t-n bytes\tNumber of bytes to send, defaults whole file\n\t-o offset\tOffset into file to start sending\n\t-l\t\tListen (on server side) on port instead of connecting and\n\t\t\twrite output to file and dest_ip refers to which ip to bind to.\n\t\t\t(default:localhost)\n";
+      printf("fsend [OPTIONS] dest_ip file\n%s",helpMessage);
     }
     if (strcmp("-v", argv[i]) == 0) {
       verbose = 1;
@@ -297,9 +298,9 @@ int main(int argc, char *argv[]){
       printf("Offset into file : %i\n", atoi(argv[i+1]));
       offset = atoi(argv[i+1]);
       printf("Offset is %i\n", offset);
-      
+
     }
-    if (strcmp("localhost", argv[i]) || strstr(argv[i], ".") != NULL) {
+    if ((strcmp("localhost", argv[i]) == 0) || strstr(argv[i], ".") != NULL) {
       possibleIPs[ipIndex] = argv[i];
       ipIndex++;
     }
@@ -316,11 +317,16 @@ int main(int argc, char *argv[]){
   }
 
   file = argv[argc - 1];
+
+  if (verbose) {
+    printf("Connect to IP: %s, not %s", possibleIPs[0], possibleIPs[1]);
+  }
+
   printf("Calling the Server now:\n");
   printf("On port %i\n", port);
   int call =  calltheServer(port);
   //printf("Offset amount for file %i\n", offset);
-  
+
   printf("Sending the following num of bytest over : %d", bytes);
   writeClient(call, file, offset, bytes, flag);
   return 0;
