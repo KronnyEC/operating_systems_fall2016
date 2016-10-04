@@ -279,7 +279,7 @@ int main(int argc, char *argv[]){
   for (i = 1; i < (argc - 1); i++) {
     if (strcmp("-h", argv[i]) == 0) {
       char* helpMessage = "\t-h\t\tPrint this help screen\n\t-v\t\tVerbose output\n\t-p port\t\tSet the port to connect on (e.g., 9285)\n\t-n bytes\tNumber of bytes to send, defaults whole file\n\t-o offset\tOffset into file to start sending\n\t-l\t\tListen (on server side) on port instead of connecting and\n\t\t\twrite output to file and dest_ip refers to which ip to bind to.\n\t\t\t(default:localhost)\n";
-      printf("fsend [OPTIONS] dest_ip file\n%s",helpMessage);
+      printf("fsnd [OPTIONS] dest_ip file\n%s",helpMessage);
     }
     if (strcmp("-v", argv[i]) == 0) {
       verbose = 1;
