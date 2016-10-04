@@ -18,6 +18,7 @@ char* possibleIPs[2];
 int offset = 0;
 long bytes = 0;
 int flag = 0;
+int fsize = 0;
 
 // TODO: Clean this all up!
 
@@ -155,21 +156,21 @@ void writeClient(int socket, const char *filename, int offset, long amountToSend
   fseek (fd, 0, SEEK_END); //find the entire fileSize
   lSize = ftell (fd);
   
-  
-  printf("Total size of file now is %d bytes \n", lSize);
+  printf("File size: %d\n", lSize);
   
   fseek (fd, offset, SEEK_SET); //get to the offset. 
   totalSize = ftell(fd);
-  printf("Amout to offset file size is %d bytes \n", totalSize);
+  //printf("Amout to offset file size is %d bytes \n", totalSize);
 
   if (flag == 1){ 
     allocationSize = amountToSend;
-    printf("Send the following amount to the Server %d\n: ", amountToSend); 
+    fsize = allocationSize;
+    //printf("Send the following amount to the Server %d\n: ", amountToSend); 
 
   } else {
     allocationSize = lSize - totalSize;
   }
-  printf("Allocation Size for file is %d\n : ", allocationSize);
+  //printf("Allocation Size for file is %d\n : ", allocationSize);
 
   //rewind (fd);
 
@@ -209,7 +210,7 @@ void writeClient(int socket, const char *filename, int offset, long amountToSend
     printf("ERROR reading from socket\n");
     exit(0);
   }
-  printf("%s\n",buffer);
+  //printf("%s\n",buffer);
   close(socket);
   // terminate
   fclose (fd);
@@ -277,7 +278,6 @@ int main(int argc, char *argv[]){
   int i;
   int ipIndex = 0;
   for (i = 1; i < (argc - 1); i++) {
-    printf("ARGV[%d] = %s\n", i, argv[i]);
     if (strcmp("-h", argv[i]) == 0) {
       char* helpMessage = "\t-h\t\tPrint this help screen\n\t-v\t\tVerbose output\n\t-p port\t\tSet the port to connect on (e.g., 9285)\n\t-n bytes\tNumber of bytes to send, defaults whole file\n\t-o offset\tOffset into file to start sending\n\t-l\t\tListen (on server side) on port instead of connecting and\n\t\t\twrite output to file and dest_ip refers to which ip to bind to.\n\t\t\t(default:localhost)\n";
       printf("fsend [OPTIONS] dest_ip file\n%s",helpMessage);
@@ -286,7 +286,6 @@ int main(int argc, char *argv[]){
       verbose = 1;
     }
     if (strcmp("-p", argv[i]) == 0) {
-      printf("Port number : %i\n", atoi(argv[i+1]));
       port = atoi(argv[i+1]);
     }
     if (strcmp("-n", argv[i]) == 0){
@@ -318,16 +317,17 @@ int main(int argc, char *argv[]){
 
   file = argv[argc - 1];
 
-  if (verbose) {
-    printf("Connect to IP: %s, not %s", possibleIPs[0], possibleIPs[1]);
-  }
-
-  printf("Calling the Server now:\n");
-  printf("On port %i\n", port);
   int call =  calltheServer(port);
   //printf("Offset amount for file %i\n", offset);
 
-  printf("Sending the following num of bytest over : %d", bytes);
+  if (verbose) {
+    printf("Connecting to IP: %s\n", possibleIPs[0]);
+    printf("On port: %d\n", port);
+    ("File name: %s\n", file);
+  }
   writeClient(call, file, offset, bytes, flag);
+  if (verbose) {
+    printf("Send success!\n");
+  }
   return 0;
 }
