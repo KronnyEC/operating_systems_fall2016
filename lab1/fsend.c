@@ -156,7 +156,9 @@ void writeClient(int socket, const char *filename, int offset, long amountToSend
   fseek (fd, 0, SEEK_END); //find the entire fileSize
   lSize = ftell (fd);
   
-  printf("File size: %d\n", lSize);
+  if (verbose) {
+    printf("File size: %d\n", lSize);
+  }
   
   fseek (fd, offset, SEEK_SET); //get to the offset. 
   totalSize = ftell(fd);
