@@ -237,7 +237,7 @@ int calltheServer(int portno){ //char* host{
 int arrayContains (char** argArray, char* argToFind) {
   // if contained, return index where it was found
   // if not found, return 0 (0 is never returned otherwise)
-  
+
   printf("HERE in array contains");
   int i = 1;
   for(i; i<sizeof(argArray)-1;++i){
@@ -249,68 +249,43 @@ int arrayContains (char** argArray, char* argToFind) {
 }
 
 int main(int argc, char *argv[]){
-   int i;
-   int portClient;
-   for (i = 1; i < (argc - 1); i++) {
-       if (strcmp("-h", argv[i]) == 0) {
-          printf("help");
-       }
-       
-       if (!strcmp("-l", argv[i]) == 0) {
-       	if (strcmp("-v", argv[i]) == 0) {
-        	  printf("verbose output");
-                continue;
-       }
-       	if (strcmp("-p", argv[i]) == 0) {
-        	 printf("Port number : %i\n", atoi(argv[++i]));
-		 portClient = atoi(argv[++i]);
-          	 i++;
-                    
-       }
+  int i;
+  for (i = 1; i < (argc - 1); i++) {
+    printf("ARGV[%d] = %s\n", i, argv[i]);
+    if (strcmp("-h", argv[i]) == 0) {
+      printf("help");
+    }
+    if (strcmp("-v", argv[i]) == 0) {
+      verbose = 1;
+    }
+    if (strcmp("-p", argv[i]) == 0) {
+      printf("Port number : %i\n", atoi(argv[i+1]));
+      port = atoi(argv[i+1]);
+    }
+    if (strcmp("-n", argv[i]) == 0){
+      printf("Number of bytes to send : %i\n", atoi(argv[++i]));
+      int bytes = atoi(argv[i+1]);
+    }
+    if (strcmp("-o", argv[i]) == 0){
+      printf("Offset into file : %i\n", atoi(argv[++i]));
+      int offset = atoi(argv[i+1]);
+    }
+  }
+  for (i = 1; i < (argc - 1); i++) {
+    if (strcmp("-l", argv[i]) == 0) {
+      printf("Setting up Server\n");
+      //printf("Server setup on port %i\n", port); 
+      int setup = setupServerSocket(port);
+      int accept = serverSocketAccept(setup);
+      int socketOn = readInt(accept);
+      return 0;
+    }
+  }
 
-      	 if (strcmp("-n", argv[i]) == 0){
-       		 printf("Number of bytes to send : %i\n", atoi(argv[++i]));
-        	int bytes = atoi(argv[++i]);
-        	i++;
-                
-
-       	}
-        
-        if (strcmp("-o", argv[i]) == 0){
-		printf("Offset into file : %i\n", atoi(argv[++i]));
-                int offset = atoi(argv[++i]);
-                i++;
-	}
-        file = argv[argc - 1];
-        printf("File is as follows %s", file);
-        printf("Calling the Server now:");
-        printf("On port %i\n", portClient);
-        int call =  calltheServer(portClient);
-	writeClient(call, file);
-       }
-       
-       
-
-
-       if (strcmp("-l", argv[i]) == 0){
-          printf("Setting up Server");
-          //printf("Server setup on port %i\n", port); 
-          printf("I is at %i\n", i);
-         i++; 
-	 if (strcmp("-p", argv[i]) == 0){
-             port = atoi(argv[++i]);
-             printf("Server started on port %i\n", port);
-	  }         
-          
-	  int setup = setupServerSocket(port);
-          int accept = serverSocketAccept(setup);
-          int socketOn = readInt(accept);
-          
-	}
-
-   }
-   return 0;
-
+  file = argv[argc - 1];
+  printf("Calling the Server now:\n");
+  printf("On port %i\n", port);
+  int call =  calltheServer(port);
+  writeClient(call, file);
+  return 0;
 }
-
-
