@@ -15,6 +15,8 @@ char *file = "";
 int verbose = 0;
 int port = 0;
 int offset = 0;
+long bytes = 0;
+int flag = 0;
 
 // TODO: Clean this all up!
 
@@ -131,7 +133,7 @@ int calltheServer(int portno);
 
 
 
-void writeClient(int socket, const char *filename, int offset){
+void writeClient(int socket, const char *filename, int offset, long amountToSend, int flag){
   //char buffer[256];
   //printf("Please enter the message: ");
   //memset(&buffer, '\0', 256);
@@ -146,19 +148,26 @@ void writeClient(int socket, const char *filename, int offset){
 
   // obtain file size:
   
-  printf("Are we HERE");
+ 
   //totalSize = ftell:(fd);
   //printf("File size is %d bytes \n", totalSize);  
-  fseek (fd, 0, SEEK_END); //
+  fseek (fd, 0, SEEK_END); //find the entire fileSize
   lSize = ftell (fd);
   
-  printf("Total size of file now is %d bytest \n", lSize);
+  
+  printf("Total size of file now is %d bytes \n", lSize);
   
   fseek (fd, offset, SEEK_SET); //get to the offset. 
   totalSize = ftell(fd);
-  printf("Amout to offset file size is no %d bytest \n", totalSize);
+  printf("Amout to offset file size is %d bytes \n", totalSize);
 
-  allocationSize = lSize - totalSize;
+  if (flag == 1){ 
+    allocationSize = amountToSend;
+    printf("Send the following amount to the Server %d\n: ", amountToSend); 
+
+  } else {
+    allocationSize = lSize - totalSize;
+  }
   printf("Allocation Size for file is %d\n : ", allocationSize);
 
   //rewind (fd);
@@ -279,8 +288,9 @@ int main(int argc, char *argv[]){
       port = atoi(argv[i+1]);
     }
     if (strcmp("-n", argv[i]) == 0){
-      printf("Number of bytes to send : %i\n", atoi(argv[++i]));
-      int bytes = atoi(argv[i+1]);
+      //printf("Number of bytes to send : %i\n", atoi(argv[i+1]));
+      flag = 1;
+      bytes = atoi(argv[i+1]);
     }
     if (strcmp("-o", argv[i]) == 0){
       printf("Offset into file : %i\n", atoi(argv[i+1]));
@@ -306,6 +316,7 @@ int main(int argc, char *argv[]){
   int call =  calltheServer(port);
   //printf("Offset amount for file %i\n", offset);
   
-  writeClient(call, file, offset);
+  printf("Sending the following num of bytest over : %d", bytes);
+  writeClient(call, file, offset, bytes, flag);
   return 0;
 }
