@@ -5,6 +5,9 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#include <sys/types.h>
+#include <fcntl.h>
+#include <errno.h>
 #include "sockets.h"
 
 #define FILENAME "input.txt"
@@ -19,6 +22,7 @@ int offset = 0;
 long bytes = 0;
 int flag = 0;
 long fsize = 0;
+ssize_t read_return;
 
 // TODO: Clean this all up!
 
@@ -93,32 +97,32 @@ int serverSocketAccept(int serverSocket){
   return newsockfd;
 }
 
-int readFile(int socket){
-  //  bzero(buffer,256);
 
-  // loop until EOF
-  while(1){
-    char buffer[256];
-    memset(&buffer, '\0', 256);
-    int n = read(socket,buffer,255);
-    if (n < 0) {
-      printf("ERROR reading from socket\n");
-      exit(1);
+int readFile(int socket, char *read_input){
+
+char buffer[BUFSIZ];
+
+while(1){
+	int filefd = open(read_input, O_RDWR|O_CREAT, 0664);
+        if (filefd == -1) {
+            perror("open");
+            exit(EXIT_FAILURE);
+        }
+        do {
+            read_return = read(socket, buffer, BUFSIZ);
+            if (read_return == -1) {
+                perror("read");
+                exit(EXIT_FAILURE);
+            }
+            if (write(filefd, buffer, read_return) == -1) {
+                perror("write");
+                exit(EXIT_FAILURE);
+            }
+        } while (read_return > 0);
+        close(filefd);
+        close(socket);
     }
-
-    printf("%s",buffer);
-    //n = write(socket,"File Size Recieved", 18);
-    //if (n < 0) {
-      //printf("ERROR writing to socket\n");
-      //exit(1);
-    //}
-  }  
-  close(socket);
-  return 0;
-
 }
-
-
 
 //********************CLIENT********************
 
@@ -309,7 +313,8 @@ int main(int argc, char *argv[]){
       //printf("Server setup on port %i\n", port); 
       int setup = setupServerSocket(port);
       int accept = serverSocketAccept(setup);
-      int socketOn = readFile(accept);
+      //Test for both stdout and the accepted file
+      int socketOn = readFile(accept, argv[4]);
       return 0;
     }
   }
