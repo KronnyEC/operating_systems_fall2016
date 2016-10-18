@@ -103,7 +103,7 @@ int readFile(int socket, char *read_input){
 char buffer[BUFSIZ];
 
 while(1){
-	int filefd = open(read_input, O_RDWR|O_CREAT, 0664);
+	int filefd = open(read_input, O_WRONLY|O_CREAT, 0664);
         if (filefd == -1) {
             perror("open");
             exit(EXIT_FAILURE);
