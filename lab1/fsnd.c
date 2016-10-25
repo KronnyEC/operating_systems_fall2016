@@ -98,12 +98,11 @@ int serverSocketAccept(int serverSocket){
 }
 
 
-int readFile(int socket, char *read_input){
-
-char buffer[BUFSIZ];
+int readFile(int socket, char* read_input){
 
 while(1){
-	int filefd = open(read_input, O_WRONLY|O_CREAT, 0664);
+	char buffer[BUFSIZ];
+	int filefd = open(read_input, O_CREAT|O_WRONLY, 0777);
         if (filefd == -1) {
             perror("open");
             exit(EXIT_FAILURE);
@@ -111,7 +110,7 @@ while(1){
         do {
             read_return = read(socket, buffer, BUFSIZ);
             if (read_return == -1) {
-                perror("read");
+                perror("read error on SERVER READ");
                 exit(EXIT_FAILURE);
             }
             if (write(filefd, buffer, read_return) == -1) {
@@ -121,12 +120,15 @@ while(1){
         } while (read_return > 0);
         close(filefd);
         close(socket);
+        //free(buffer);
     }
 }
 
 //********************CLIENT********************
 
 int calltheServer(int portno);
+
+
 
 
 
@@ -189,33 +191,46 @@ void writeClient(int socket, const char *filename, int offset, long amountToSend
 
   /* the whole file is now loaded in the memory buffer. */
 
+  int filefd;
+  ssize_t read_return;
+  ssize_t read_length;
+  char bufferTest[BUFSIZ];
+  char lengthBuffer[amountToSend];
+  char * bufferLength;
+  filefd = open(filename, O_RDONLY);
 
+  
 
+ while(1){
+  //read_length = read(amountToSend, lengthBuffer, BUFSIZ); 
+  read_return = read(filefd, bufferTest, BUFSIZ);
+ 
+  if (read_return == 0){
+     break;
+  }
+  if (read_return == -1){
+    perror("read error on WRITECLIENT");
+    exit(EXIT_FAILURE);
+  }
 
-  //fread(buff,SIZE,NUMELEM,fd);
-  //printf("\n The bytes read are [%s]\n",buffer);
-
-  //fgets(buffer,255,stdin);
-
-
-  int n = write(socket,buffer,strlen(buffer));
+  //int len = write(socket,bufferLength,read_length); 
+  int n = write(socket,buffer,read_return);
   if (n < 0) {
     printf("ERROR writing to socket\n");
     exit(0);
   }
 
-  //memset(&buffer, '\0', 256);
-  //n = read(socket,buffer,255);
 
-  if (result < 0) {
-    printf("ERROR reading from socket\n");
-    exit(0);
-  }
-  //printf("%s\n",buffer);
+  //if (result < 0) {
+    //printf("ERROR reading from socket\n");
+    //exit(0);
+ // }
+}
   close(socket);
-  // terminate
-  fclose (fd);
+  close(filefd); 
+  //free(bufferLength);
   free (buffer);
+
 
 }
 
@@ -315,6 +330,7 @@ int main(int argc, char *argv[]){
       int accept = serverSocketAccept(setup);
       //Test for both stdout and the accepted file
       int socketOn = readFile(accept, argv[4]);
+      
       return 0;
     }
   }
