@@ -27,6 +27,187 @@ ssize_t read_return;
 // TODO: Clean this all up!
 
 
+//------- KDC Set-up ----------//
+
+
+int setupKDCSocket(int portno) {
+ //Get a socket of the right type for now 
+ int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+
+ if (sockfd < 0) {
+  printf("Error opening socket on KDC");
+  exit(1);
+
+ }
+ 
+ printf("KDC started on Port: %d\n", portno);
+ 
+  // server address structure
+  struct sockaddr_in serv_addr;
+
+  // Set all the values in the server address to 0
+  memset(&serv_addr, '0', sizeof(serv_addr));
+
+  // Setup the type of socket (internet vs filesystem)
+  serv_addr.sin_family = AF_INET;
+
+  // Basically the machine we are on...
+  serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+
+  // Setup the port number
+  // htons - is host to network byte order
+  // network byte order is most sig bype first
+  //   which might be host or might not be
+  serv_addr.sin_port = htons(portno);
+
+  // Bind the socket to the given port
+  if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
+    printf("ERROR on binding\n");
+    exit(1);
+  }
+
+  // set it up to listen
+  listen(sockfd,5); 
+
+  return sockfd;   
+
+}
+
+int KDCServerSocketAccept(int KDCSocket){
+  int newsockfd;
+
+  struct sockaddr_in cli_addr;
+  socklen_t clilen = sizeof(cli_addr);
+
+  newsockfd = accept(KDCSocket, (struct sockaddr *) &cli_addr, &clilen);
+  printf("Requesting Ks from KDC\n");
+  if (newsockfd < 0){
+   printf("ERROR on accept");
+   exit(1);
+
+  }
+
+  return newsockfd;
+
+}
+
+void writeN(int socket){
+ int x = 5;
+ int n = write(socket, &x, sizeof(x));
+ 
+ printf("Write N1: %d to socket %d\n", x, socket);
+ if (n <0){
+  printf("Error writing N1 to socket \n:");
+  exit(0);
+ }
+
+}
+
+int readN(int socket){
+ int x;
+ int n = read(socket, &x, sizeof(x));
+ if (n < 0){
+  printf("Error reading N1 from socket\n");
+  exit(1);
+ }
+ printf("N is %d", x);
+ return x;
+
+
+
+}
+
+void writeKB(int socket){
+
+
+  char KBbuffer[256];
+  printf("Enter Kb: \n");
+  memset(&KBbuffer, '\0', 256);
+  fgets(KBbuffer, 255,stdin);
+
+  int kb = write(socket,KBbuffer,strlen(KBbuffer));
+  if(kb < 0){
+   printf("Error writing KB back to socket\n");
+   exit(0);
+  }
+
+}
+
+
+void writeKA(int socket){
+  char KAbuffer[256];
+  printf("Enter Ka: \n");
+  memset(&KAbuffer, '\0', 256);
+  fgets(KAbuffer, 255,stdin);
+ 
+  
+
+  int ka = write(socket,KAbuffer,strlen(KAbuffer));
+  if (ka < 0){
+    printf("ERROR writing KA back to socket\n");
+    exit(0);
+  }
+}
+
+void writeKS(int socket){
+  char KSbuffer[256];
+  printf("Enter Ks: \n");
+  memset(&KSbuffer, '\0', 256);
+  fgets(KSbuffer,255,stdin);
+
+  int ks = write(socket,KSbuffer,strlen(KSbuffer));
+  if (ks < 0) {
+    printf("ERROR writing KS back to socket\n");
+    exit(0);
+  }
+}
+
+int readKA(int socket){
+
+char KAbuffer[256];
+ memset(&KAbuffer, '\0', 256);
+ int ka = read(socket,KAbuffer,256);
+ if (ka <0){
+  printf( "Error reading Ka from KDC Socket\n");
+  exit(1);
+ }
+
+ printf("%s", KAbuffer);
+
+ return 0;
+}
+
+int readKB(int socket){
+char KBbuffer[256];
+memset(&KBbuffer, '\0', 256);
+
+int kb = read(socket,KBbuffer,256);
+ if (kb <0){
+  printf("Error reading KB from KDC Socket \n");
+  exit(1);
+}
+ printf("%s",KBbuffer);
+
+ return 0;
+}
+
+int readKS(int socket){
+ char KSbuffer[256];
+ memset(&KSbuffer, '\0', 256);
+ int ks = read(socket,KSbuffer, 256);
+ if (ks < 0){
+   printf("Error reading KS for KDC socket\n");
+   exit(1);
+ }
+ 
+  printf("%s",KSbuffer);
+ //computation to n
+ 
+ return 0;
+ 
+}
+
+
 int setupServerSocket (int portno) {
   //Get a soocket of the right type for now test with int sockfd
   int sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -69,7 +250,7 @@ int setupServerSocket (int portno) {
   //open listen socket on port
 
   //wait for input
-
+  
   //close socket
   return sockfd;
 }
@@ -85,6 +266,7 @@ int calltheServeer(int portno){
 
 int serverSocketAccept(int serverSocket){
   int newsockfd;
+
   struct sockaddr_in cli_addr;
   socklen_t clilen = sizeof(cli_addr);
 
@@ -226,7 +408,7 @@ void writeClient(int socket, const char *filename, int offset, long amountToSend
     //exit(0);
  // }
 }
-  close(socket);
+  //close(socket);
   close(filefd); 
   //free(bufferLength);
   free (buffer);
@@ -333,20 +515,41 @@ int main(int argc, char *argv[]){
       
       return 0;
     }
+
+    if (strcmp("-k", argv[i]) == 0) {
+      printf("Setting up KDC\n");
+      int setup = setupKDCSocket(port);
+      //write the Eka over to requester.
+      int accept = KDCServerSocketAccept(setup);
+      int nRecd = readN(accept);         
+      //read back to the CLIENT
+      printf("recieved the following %d\n", nRecd);
+     
+      //Create Session Key
+      //writeKS(accept);
+      writeKS(accept);    
+      writeKA(accept);
+      writeKB(accept);
+      return 0;
   }
+ } 
 
   file = argv[argc - 1];
   
-  //For File length for verbose
-  //FILE *fp;
-  //int len;
-  //fp = fopen(file, "r");
-  //fseek(fp, 0, SEEK_END);  
-  //len = ftell(fp);
-  //fclose(fp);
-
+  //CALL THE KDC FIRST
   int call =  calltheServer(port);
   //printf("Offset amount for file %i\n", offset);
+  printf("Sending N1 over to the KDC\n");
+  //WRITE 
+  writeN(call);
+  readKS(call);
+  readKA(call);
+  readKB(call);
+  //int kReturned = readN(call);
+  //printf("N1 is %d\n", kReturned);
+  
+  //NOW WE CALL the next Client
+
 
   if (verbose) {
     printf("Connecting to IP: %s\n", possibleIPs[0]);
