@@ -416,6 +416,54 @@ void writeClient(int socket, const char *filename, int offset, long amountToSend
 
 }
 
+int callServerB(char* host, int portNum){
+
+
+  // Socket pointer
+  int sockfd;
+  sockfd = socket(AF_INET, SOCK_STREAM, 0);
+  if (sockfd < 0) {
+    fprintf(stderr,"ERROR opening socket\n");
+    exit(0);
+  }
+
+  // server address structure
+  struct sockaddr_in serv_addr;
+
+  // Set all the values in the server address to 0
+  memset(&serv_addr, '0', sizeof(serv_addr));
+  // Setup the type of socket (internet vs filesystem)
+  serv_addr.sin_family = AF_INET;
+
+  // Setup the port number
+  // htons - is host to network byte order
+  // network byte order is most sig byte first
+  //   which might be host or might not be
+  //printf("Port number is as follows : %d", portNum);
+
+  serv_addr.sin_port = htons(9111);
+
+  
+
+  //printf("Host is as follows: %s", host);
+  // Setup the server host address
+  struct hostent *server;
+  server = gethostbyname("thing3.cs.uwec.edu");
+  if (server == NULL) {
+    fprintf(stderr,"ERROR, no such host\n");
+    exit(0);
+  }
+  memcpy(&serv_addr.sin_addr.s_addr, server->h_addr, server->h_length);  /// dest, src, size
+
+  // Connect to the server
+  if (connect(sockfd,(struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
+    printf("ERROR connecting\n");
+    exit(0);
+  }
+
+  return sockfd;
+
+}
 
 int calltheServer(int portno){ //char* host{  
   // Socket pointer
@@ -545,12 +593,35 @@ int main(int argc, char *argv[]){
   readKS(call);
   readKA(call);
   readKB(call);
+  //Read FROM KDC, Close socket
+  close(call);
   //int kReturned = readN(call);
   //printf("N1 is %d\n", kReturned);
   
   //NOW WE CALL the next Client
+  
+  char portBuffer[256];
+  printf("Please Enter Port Number for B: \n");
+  memset(&portBuffer, '\0', 256);
+  fgets(portBuffer,255,stdin);
+   
+  //int p = (int)portBuffer;
+  char hostBuffer[256];
+  printf("Please Enter Host for B: \n");
+  memset(&hostBuffer, '\0', 256);
+  fgets(hostBuffer,255,stdin);
+ 
+  int newCall = callServerB(hostBuffer, 9111);
+  printf("Connecting to B\n"); 
+  
+  char Nabuffer[256];
+  printf("Please Enter Na : \n");  
+  memset(&Nabuffer, '\0', 256);
+  fgets(Nabuffer,255,stdin);
 
-
+  //char KabufferInput[256];
+  printf("Please Enter Ka : \n");
+  
   if (verbose) {
     printf("Connecting to IP: %s\n", possibleIPs[0]);
     printf("On port: %d\n", port);
