@@ -108,7 +108,7 @@ void writeN(int socket){
  long x = nonceGen(5647892341);
  int n = write(socket, &x, sizeof(x));
  
- printf("Write N1: %d to socket %d\n", x, socket);
+ //printf("Write N1: %d to socket %d\n", x, socket);
  if (n <0){
   printf("Error writing N1 to socket \n:");
   exit(0);
@@ -117,8 +117,9 @@ void writeN(int socket){
 }
 
 int readN(int socket){
- int x;
+ long x;
  int n = read(socket, &x, sizeof(x));
+ printf("N1 recieved as follows %ld\n", x);
  if (n < 0){
   printf("Error reading N1 from socket\n");
   exit(1);
@@ -133,20 +134,53 @@ int readN(int socket){
 void writeKB(int socket){
 
 
-  char KBbuffer[256];
-  printf("Enter Kb: \n");
-  memset(&KBbuffer, '\0', 256);
-  fgets(KBbuffer, 255,stdin);
+  char* KBBuffer;
+  //printf("Enter Kb: \n");
+  //memset(&KBbuffer, '\0', 256);
+  //fgets(KBbuffer, 255,stdin);
+  KBBuffer="foo";
+  printf("Got KBBUFFER\n");
 
-  int kb = write(socket,KBbuffer,strlen(KBbuffer));
+  char* KSBuffer;
+  //printf("Enter Ks: \n");
+  //memset(&KSBuffer, '\0', 256);
+  //fgets (KSBuffer, 255,stdin);
+  KSBuffer = "Helloheg";
+  printf("KSBuffer is %s", KSBuffer);
+    
+
+
+  Blowfish BF;
+  BF.Set_Passwd(KBBuffer); 
+  BF.Encrypt(&KSBuffer,8);
+  
+  //printf("KSBuffer after encryption is : %s\n", KSBuffer);  
+
+  printf("Encryption Completed\n");
+ //wirte over the length
+ //
+  int datalen = sizeof(KSBuffer);
+  printf("Datalen is as follows %d\n", datalen); 
+  int tmp = htonl(datalen);
+
+  printf("tmp data is %d\n", tmp);
+  int n = write(socket,(char*)&tmp, sizeof(tmp));
+
+  if (n < 0){
+   printf("Error writing byte length to socket\n");
+   exit(0);
+  }
+  printf("Size of &KSBuffer is %d\n", sizeof(&KSBuffer));
+  int kb = write(socket,KSBuffer,datalen); //Unable to write back 
   if(kb < 0){
-   printf("Error writing KB back to socket\n");
+   printf("Error writing KB data back to socket\n");
+   printf("Error %d \n", errno);
    exit(0);
   }
 
 }
 
-
+/*
 void writeKA(int socket){
   char KAbuffer[256];
   printf("Enter Ka: \n");
@@ -166,6 +200,7 @@ void writeKS(int socket){
   char KSbuffer[256];
   printf("Enter Ks: \n");
   memset(&KSbuffer, '\0', 256);
+
   fgets(KSbuffer,255,stdin);
 
   int ks = write(socket,KSbuffer,strlen(KSbuffer));
@@ -174,7 +209,9 @@ void writeKS(int socket){
     exit(0);
   }
 }
+*/
 
+/*
 int readKA(int socket){
 
 char KAbuffer[256];
@@ -203,17 +240,37 @@ int kb = read(socket,KBbuffer,256);
 
  return 0;
 }
+*/
 
-int readKS(int socket){
- char KSbuffer[256];
- memset(&KSbuffer, '\0', 256);
- int ks = read(socket,KSbuffer, 256);
+
+
+
+int readKB(int socket){
+ char* KSBuffer;
+ //memset(&KSBuffer, '\0', 256);
+ printf("Reading data length\n");
+ int buflen;
+ int n = read(socket, (char*)&buflen,sizeof(buflen));
+ if (n < 0) {
+  printf("Error reading len from socket");
+  exit(0);
+
+ }
+ 
+ buflen = ntohl(buflen);
+ 
+ printf("Buflen on readKB as follows %d\n", buflen); 
+
+
+ int ks = read(socket,KSBuffer, buflen);
  if (ks < 0){
    printf("Error reading KS for KDC socket\n");
+ }else {
+   //printf("%*.*s\n", n, ks, KSBuffer);
    exit(1);
  }
  
-  printf("%s",KSbuffer);
+  //printf("%s",KSBuffer);
  //computation to n
  
  return 0;
@@ -305,8 +362,9 @@ while(1){
         do {
             read_return = read(socket, buffer, BUFSIZ);
             if (read_return == -1) {
-                perror("read error on SERVER READ");
-                exit(EXIT_FAILURE);
+                
+                //perror("read error on SERVER READ");
+                exit(0);
             }
             if (write(filefd, buffer, read_return) == -1) {
                 perror("write");
@@ -571,9 +629,29 @@ int main(int argc, char *argv[]){
       int setup = setupServerSocket(port);
       int accept = serverSocketAccept(setup);
       //Test for both stdout and the accepted file
-      int socketOn = readFile(accept, argv[4]);
+      //int socketOn = readFile(accept, argv[4]);
+      //Recd from IDA
+      //Decrypt and print Ks 
+      char NbInputBuffer[256];
+      printf("Please enter the Nb:\n");
+      memset(&NbInputBuffer, '\0', 256);
+      fgets(NbInputBuffer,255,stdin);
+
+      char KbInputBuffer[256];
+      printf("Please enter the Kb:\n");
+      memset(&KbInputBuffer, '\0', 256);
+      fgets(NbInputBuffer,255,stdin);     
+      //Print n2      
+
+      long n2 = nonceGen(3939302902);
+      printf("N2 is as follows : %ld\n", n2);
+
+      printf("Sending Back to IDA\n");
       
+      
+      int socketOn = readFile(accept, argv[4]);
       return 0;
+
     }
 
     if (strcmp("-k", argv[i]) == 0) {
@@ -583,13 +661,14 @@ int main(int argc, char *argv[]){
       int accept = KDCServerSocketAccept(setup);
       int nRecd = readN(accept);         
       //read back to the CLIENT
-      printf("recieved the following %d\n", nRecd);
+      //printf("recieved the following %d\n", nRecd);
      
       //Create Session Key
       //writeKS(accept);
-      writeKS(accept);    
-      writeKA(accept);
+      //writeKS(accept);    
+      //writeKA(accept);
       writeKB(accept);
+      
       return 0;
   }
  } 
@@ -602,8 +681,8 @@ int main(int argc, char *argv[]){
   printf("Sending N1 over to the KDC\n");
   //WRITE 
   writeN(call);
-  readKS(call);
-  readKA(call);
+  //readKS(call);
+  //readKA(call);
   readKB(call);
   //Read FROM KDC, Close socket
   close(call);
@@ -612,10 +691,22 @@ int main(int argc, char *argv[]){
   
   //NOW WE CALL the next Client
   
+  char Nabuffer[256];
+  printf("Please Enter Na : \n");  
+  memset(&Nabuffer, '\0', 256);
+  fgets(Nabuffer,255,stdin);
+
+  char KabufferInput[256];
+  printf("Please Enter Ka : \n");
+  memset(&KabufferInput, '\0', 256);
+  fgets(Nabuffer,255,stdin);
+  
   char portBuffer[256];
   printf("Please Enter Port Number for B: \n");
   memset(&portBuffer, '\0', 256);
   fgets(portBuffer,255,stdin);
+  
+   
    
   //int p = (int)portBuffer;
   char hostBuffer[256];
@@ -626,23 +717,18 @@ int main(int argc, char *argv[]){
   int newCall = callServerB(hostBuffer, 9111);
   printf("Connecting to B\n"); 
   
-  char Nabuffer[256];
-  printf("Please Enter Na : \n");  
-  memset(&Nabuffer, '\0', 256);
-  fgets(Nabuffer,255,stdin);
 
-  //char KabufferInput[256];
-  printf("Please Enter Ka : \n");
-  
+     
+
   if (verbose) {
-    printf("Connecting to IP: %s\n", possibleIPs[0]);
+    printf("Connecting to IP: %s\n", "thing3.cs.uwec.edu");
     printf("On port: %d\n", port);
     printf("File name: %s \n", file);
     printf("File size: %d \n", fsize);
     printf("Sending file [offset=%i | send size = %d]\n", offset, bytes);  
   }
 
-  writeClient(call, file, offset, bytes, flag);
+  writeClient(newCall, file, offset, bytes, flag);
   if (verbose) {
     printf("Send success!\n");
   }
