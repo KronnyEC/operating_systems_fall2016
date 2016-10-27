@@ -8,14 +8,18 @@ using namespace std;
 
 int main()
 {
-  Blowfish BF;
+  Blowfish BF; // initialize
+
   string string;
   cout << "input: " << endl;
   getline(cin, string);
 
-  BF.Encrypt(&string,8);
+  BF.Encrypt(&string,8); // encrypt
+
   cout << "Encrypted" << endl;
-  BF.Decrypt(&string,8);
+
+  BF.Decrypt(&string,8); // decript
+
   cout << "Decrypted" << endl;
 
   cout << string << endl;

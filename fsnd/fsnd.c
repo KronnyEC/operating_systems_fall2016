@@ -28,6 +28,20 @@ ssize_t read_return;
 
 //------- KDC Set-up ----------//
 
+long nonceGen(long nonce) {
+    const long A = 48271;
+    const long M = 2147483647;
+    const long Q = M/A;
+    const long R = M%A;
+	static long state = 1;
+	long t = A * (state % Q) - R * (state / Q);
+	if (t > 0)
+		state = t;
+	else
+		state = t + M;
+	return (long)(((double) state/M)* nonce);
+}
+
 
 int setupKDCSocket(int portno) {
  //Get a socket of the right type for now 
@@ -91,7 +105,7 @@ int KDCServerSocketAccept(int KDCSocket){
 }
 
 void writeN(int socket){
- int x = 5;
+ long x = nonceGen(5647892341);
  int n = write(socket, &x, sizeof(x));
  
  printf("Write N1: %d to socket %d\n", x, socket);
@@ -519,26 +533,9 @@ int arrayContains (char** argArray, char* argToFind) {
   return 0;
 }
 
-long nonceGen(long nonce) {
-    const long A = 48271;
-    const long M = 2147483647;
-    const long Q = M/A;
-    const long R = M%A;
-	static long state = 1;
-	long t = A * (state % Q) - R * (state / Q);
-	if (t > 0)
-		state = t;
-	else
-		state = t + M;
-	return (long)(((double) state/M)* nonce);
-}
-
 int main(int argc, char *argv[]){
   int i;
   int ipIndex = 0;
-  long sz = 0;
-
-  long nonce = nonceGen(5647892341);
 
   for (i = 1; i < (argc - 1); i++) {
     if (strcmp("-h", argv[i]) == 0) {
