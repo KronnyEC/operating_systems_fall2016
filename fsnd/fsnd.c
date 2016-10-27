@@ -25,8 +25,6 @@ int flag = 0;
 long fsize = 0;
 ssize_t read_return;
 
-// TODO: Clean this all up!
-
 
 //------- KDC Set-up ----------//
 
