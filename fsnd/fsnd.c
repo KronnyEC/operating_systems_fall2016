@@ -524,10 +524,8 @@ long nonceGen(long nonce) {
     const long M = 2147483647;
     const long Q = M/A;
     const long R = M%A;
-
 	static long state = 1;
 	long t = A * (state % Q) - R * (state / Q);
-	
 	if (t > 0)
 		state = t;
 	else
